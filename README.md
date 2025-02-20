@@ -5,12 +5,18 @@ Matlab code to process the Census TIGER/Line Shapefiles:https://www.census.gov/g
 You'll need to download (zipped filed) the necessary shapefiles: https://www.census.gov/cgi-bin/geo/shapefiles/index.php
 
 -Census Tracts (File for each state)
+
 -Block Groups (File for each state)
+
 -Blocks (File for each state)
+
 -Counties (Nationwide)
+
 -Urban Areas (Nationwide)
 
+
 You'll then need to unzip each file.
+
 
 Then run the matlab code to scrap the necessary data.
 
