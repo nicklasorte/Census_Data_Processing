@@ -20,5 +20,5 @@ You'll need to download (zipped filed) the necessary shapefiles: https://www.cen
 You'll then need to unzip each file.
 
 
-Then run the matlab code to scrap the necessary data.
+Then run the matlab code to scrap the necessary data.: https://github.com/nicklasorte/Census_Data_Processing/blob/main/init_scrap_2023_census_pop_data_rev5.m
 
