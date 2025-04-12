@@ -30,6 +30,18 @@ function [mod_cell_block_group_data]=mod_block_group_data_rev1(app,data_header,t
 % %     str_header_array_keep(7)={'INTPTLAT'   };
 % %     str_header_array_keep(8)={'INTPTLON'   };
 
+% %%%%%%%%%%Strings that need to get converted to numbers.
+% str_header_array_keep=cell(9,1); %%%%%Name of headers we want the data from
+% str_header_array_keep(1)={'STATEFP'};
+% str_header_array_keep(2)={'COUNTYFP'};
+% str_header_array_keep(3)={'TRACTCE'};
+% str_header_array_keep(4)={'BLKGRPCE'};
+% str_header_array_keep(5)={'GEOID'};
+% str_header_array_keep(6)={'ALAND'};
+% str_header_array_keep(7)={'INTPTLAT'};
+% str_header_array_keep(8)={'INTPTLON'};
+% str_header_array_keep(9)={'AWATER'};
+
 
 filename_group_cell=strcat(data_header,'_mod_cell_block_group_data.mat')
 var_exist_group_cell=exist(filename_group_cell,'file');
@@ -63,7 +75,7 @@ else
     calc_state_pop=NaN(num_states,1);
     for state_idx=1:1:num_states
         block_state=mod_cell_block_group_data{state_idx,1}
-        temp_state_group=mod_cell_block_group_data{state_idx,2};
+        temp_state_group_data=mod_cell_block_group_data{state_idx,2};
 
         row_match_idx=find(array_state_block==block_state);
         temp_state_block=cell_block_data{row_match_idx,2};
@@ -72,11 +84,15 @@ else
         cell_block_geoid20=arrayfun(@num2str, temp_state_block_geoid20, 'UniformOutput', 0);
         temp_num_block=length(cell_block_geoid20);
 
-        temp_state_group(1,:)'
+        temp_state_group_data(1,:)'
+        size(temp_state_group_data)
+        sum(temp_state_group_data(:,9)) %%%%Not population
+  
+
         temp_state_block(1,:)'
 
         size(unique(temp_state_block(:,2)))
-        size(unique(temp_state_group(:,2)))
+        size(unique(temp_state_group_data(:,2)))
 
         sum(temp_state_block(:,6))
 
@@ -139,17 +155,17 @@ else
             end
 
             size(horzcat(temp_state_group_contour(:,1),cell_block_idx_inside))
-            size(temp_state_group)
+            size(temp_state_group_data)
 
             %%%%%%%%%%Line up the geoid in the temp_state_group and find
             %%%%%%%%%%the pop in each block group.
 
-            temp_state_group(1,:)'
+            temp_state_group_data(1,:)'
             temp_state_group_contour(1,1)
             temp_array_num_geoid=cellfun(@str2num, temp_state_group_contour(:,1));
 
             temp_num_groups=length(temp_array_num_geoid)
-            [num_groups,~]=size(temp_state_group)
+            [num_groups,~]=size(temp_state_group_data)
             
             if temp_num_groups~=num_groups
                 'Error: Number of group off'
@@ -158,7 +174,7 @@ else
 
             
             %%%%%%%Find the Population of each Block Group
-            if all(temp_state_group(:,5)==temp_array_num_geoid)
+            if all(temp_state_group_data(:,5)==temp_array_num_geoid)
                 group_pop=NaN(num_groups,1);
                 temp_cell_block_group_ua=cell(num_groups,2); %%%%%%%%1) Block Group Geo ID, 2)UA code
                 for group_idx=1:1:temp_num_groups
@@ -170,7 +186,7 @@ else
                     if isempty(temp_ua_code)
                         temp_ua_code=NaN(1,1);
                     end
-                    temp_cell_block_group_ua{group_idx,1}=temp_state_group(group_idx,5);
+                    temp_cell_block_group_ua{group_idx,1}=temp_state_group_data(group_idx,5);
                     temp_cell_block_group_ua{group_idx,2}=temp_ua_code;
                 end
             else
@@ -179,13 +195,13 @@ else
             end
 
             %%%%%%%%%%Now make it similar to the other data: Adding the
-            %%%%%%%%%%block group population to the ninth column in the temp_state_group --> cell_block_group_data
-            temp_state_group(:,9)=group_pop;
-            mod_cell_block_group_data{state_idx,2}=temp_state_group;
-            sum(temp_state_group(:,9))
+            %%%%%%%%%%block group population to the 10th column in the temp_state_group --> cell_block_group_data
+            temp_state_group_data(:,10)=group_pop;
+            mod_cell_block_group_data{state_idx,2}=temp_state_group_data;
+            sum(temp_state_group_data(:,10))
 
             %%%%According to the 2020 US Census, Connecticut's population was 3,605,944
-            size(unique(temp_state_group(:,5)))
+            size(unique(temp_state_group_data(:,5)))
 
             %%%%%%%%%%%%%%%%Add the Urban Area Code, from the Block to the Block Group:
             %%%%%%%%%%%%%%%%cell_block_group_data{state_idx,3} with cell:
@@ -217,12 +233,12 @@ else
             toc;
             sort_block_geoid=unique(temp_block_geoid);
             horzcat(min(sort_block_geoid),max(sort_block_geoid))
-            horzcat(min(temp_state_group(:,[5])),max(temp_state_group(:,[5])))
+            horzcat(min(temp_state_group_data(:,[5])),max(temp_state_group_data(:,[5])))
 
             temp_table_block=array2table(temp_block_geoid);
             %%%%%Change the variable name
             temp_table_block.Properties.VariableNames={'Var1'};
-            temp_table_group=array2table(temp_state_group(:,[5]));
+            temp_table_group=array2table(temp_state_group_data(:,[5]));
 
             tic;
             [Lia,Locb]=ismember(temp_table_block,temp_table_group,'rows');
@@ -241,7 +257,7 @@ else
             size(unique(temp_table_block,'rows')) %%%%%%For connecicut, this only aligns to the number of census tracts, not block group.
 
             %%%%%%%Find the Population of each Tract Group
-            [num_groups,~]=size(temp_state_group);
+            [num_groups,~]=size(temp_state_group_data);
             group_pop=NaN(num_groups,1);
             temp_cell_block_group_ua=cell(num_groups,2); %%%%%%%%1) Block Group Geo ID, 2)UA code
             for group_idx=1:1:num_groups
@@ -253,15 +269,15 @@ else
                 if isempty(temp_ua_code)
                     temp_ua_code=NaN(1,1);
                 end
-                temp_cell_block_group_ua{group_idx,1}=temp_state_group(group_idx,5);
+                temp_cell_block_group_ua{group_idx,1}=temp_state_group_data(group_idx,5);
                 temp_cell_block_group_ua{group_idx,2}=temp_ua_code;
 
             end
-            temp_state_group(:,9)=group_pop;
-            mod_cell_block_group_data{state_idx,2}=temp_state_group;
-            sum(temp_state_group(:,9))
+            temp_state_group_data(:,10)=group_pop;
+            mod_cell_block_group_data{state_idx,2}=temp_state_group_data;
+            sum(temp_state_group_data(:,10))
 
-            size(unique(temp_state_group(:,5)))
+            size(unique(temp_state_group_data(:,5)))
 
             %%%%%%%%%%%%%%%%Add the Urban Area Code, from the Block to the Block Group:
             %%%%%%%%%%%%%%%%cell_block_group_data{state_idx,3} with cell:
@@ -273,7 +289,7 @@ else
 
         %%%%%%5024279 (Alabama Pop Matches)
         %%%%%29145505 (Texas Pop Matches)
-        calc_state_pop(state_idx,1)=sum(temp_state_group(:,9));
+        calc_state_pop(state_idx,1)=sum(temp_state_group_data(:,10));
     end
     sum(calc_state_pop) %%%%331,449,281  === 331,449,281 (50 + DC) Matches [2023]
 
