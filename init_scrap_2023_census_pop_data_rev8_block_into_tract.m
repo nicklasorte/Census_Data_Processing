@@ -492,11 +492,122 @@ toc;
 % % str_ua_header_keep(7)={'X'};
 % % str_ua_header_keep(8)={'Y'};
 
+array_geo_idx=new_full_census_2020(:,1);
+mid_lat=new_full_census_2020(:,2);
+mid_lon=new_full_census_2020(:,3);
+tract_pop=new_full_census_2020(:,4);
+census_ua_num=new_full_census_2020(:,5);
+points_latlon=horzcat(mid_lat,mid_lon);
 
-% 'Need to make a Urban Area cell similar to the PEA/Census'
-% 'Remove the empty population Urban Areas'
-% pause;
+cell_ua_data_pop_2020([1,2],:)'
+
     % %%%%%1)PEA Name, 2)PEA Num, 3)PEA {Lat/Lon}, 4)PEA Pop 2020, 5)PEA Centroid, 6)Census {Geo ID}, 7)Census{Population}, 8)Census{NLCD}, 9)Census Centroid
+
+    % % % % 'Need to make a Urban Area cell similar to the PEA/Census'
+    % % % % 'Remove the empty population Urban Areas'
+    % % % % 'Use the PEA code to make the UA equivalent'
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Make the Urban Area Data [DONE]
+
+tf_recalc_group_pop=0%1%0
+filename_group_cell_ua=strcat('cell_urbanarea_census_data_2020_2023.mat')%%%%%%%%Using the 2023 Census Tracts/PEA equivalent
+var_exist_group_cell=exist(filename_group_cell_ua,'file');
+if tf_recalc_group_pop==1
+    var_exist_group_cell=0;
+end
+
+if var_exist_group_cell==2
+    retry_load=1;
+    while(retry_load==1)
+        try
+            tic;
+            load(filename_group_cell_ua,'cell_ua_census_data_2020')
+            toc; %%%%%%%0.08 seconds for 5MB
+            pause(0.1);
+            retry_load=0;
+        catch
+            retry_load=1
+            pause(0.1)
+        end
+    end
+
+else
+    [num_ua,~]=size(cell_ua_data_pop_2020)
+    cell_ua_census_data_2020=cell(num_ua,7);
+    % %%%%%1)PEA Name, 2)PEA Num, 3)PEA {Lat/Lon}, 4)PEA Pop 2020, 5)PEA Centroid, 6)Census {Geo ID}, 7)Census{Population}, 8)Census{NLCD}, 9)Census Centroid
+    cell_ua_data_pop_2020(1:10,:)
+
+    cell_empty_ua_census=cell(num_ua,1);
+    tic;
+    for i=2:1:num_ua
+        i/num_ua*100
+
+        %%%%%%%%%Make each UA a polygon
+        temp_lat=cell_ua_data_pop_2020{i,8}';
+        temp_lon=cell_ua_data_pop_2020{i,7}';
+        poly_contour=polyshape(temp_lon,temp_lat); %%%%%%%This takes a while, but we need it for the centroid.
+
+        %%%%%%%%%%This is done with the census tract UA idx
+        %[inside_idx]=find_points_inside_polygon(app,poly_contour,points_latlon);
+
+         uace20=cell_ua_data_pop_2020{i,1};
+         inside_idx=find(census_ua_num==uace20);
+
+        if isempty(inside_idx)
+            cell_empty_ua_census{i}=cell_ua_data_pop_2020{i,2};
+            %cell_ua_data_pop_2020(i,:)
+            'No census tracts inside'
+            %pause;
+            'Might need to do the full census tract/PEA overlap'
+        end
+
+        %horzcat(temp_lat,temp_lon)
+        [cent_x,cent_y]=centroid(poly_contour);
+
+        cell_ua_census_data_2020{i,1}=cell_ua_data_pop_2020{i,2};
+        cell_ua_census_data_2020{i,2}=cell_ua_data_pop_2020{i,1};
+        cell_ua_census_data_2020{i,3}=horzcat(temp_lat,temp_lon);
+        cell_ua_census_data_2020{i,5}=horzcat(cent_y,cent_x);
+        
+        if ~isempty(inside_idx)
+            cell_ua_census_data_2020{i,4}=sum(tract_pop(inside_idx));
+            cell_ua_census_data_2020{i,6}=array_geo_idx(inside_idx);
+            cell_ua_census_data_2020{i,7}=tract_pop(inside_idx);
+            cell_ua_census_data_2020{i,9}=points_latlon(inside_idx);
+        else
+            %cell_ua_census_data_2020{i,4}=0;
+            cell_ua_census_data_2020{i,6}=NaN(1,1);
+            cell_ua_census_data_2020{i,7}=0;
+            cell_ua_census_data_2020{i,9}=NaN(1,2);
+        end
+        
+         % %%%%%1)PEA Name, 2)PEA Num, 3)PEA {Lat/Lon}, 4)PEA Pop 2020, 5)PEA Centroid, 6)Census {Geo ID}, 7)Census{Population}, 8)Census{NLCD}, 9)Census Centroid
+    end
+    toc;
+
+    cell_ua_census_data_2020=cell_ua_census_data_2020(~cellfun(@isempty, cell_ua_census_data_2020(:,1)),:);
+    cell_ua_census_data_2020=cell_ua_census_data_2020(~cellfun(@isempty, cell_ua_census_data_2020(:,4)),:);
+    cell_ua_census_data_2020(1:10,:)
+
+    retry_save=1;
+    while(retry_save==1)
+        try
+            tic;
+            save(filename_group_cell_ua,'cell_ua_census_data_2020')
+            toc; %%%%%%%0.08 seconds for 5MB
+            pause(0.1);
+            retry_save=0;
+        catch
+            retry_save=1
+            pause(0.1)
+        end
+    end
+end
+cell_ua_census_data_2020(1:10,:)
+cell_ua_census_data_2020(:,[1,4])
+
+
 
 
 %%%%%%%%%%%%%%%Make the PEA Data (Done)
