@@ -510,7 +510,7 @@ cell_ua_data_pop_2020([1,2],:)'
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Make the Urban Area Data [DONE]
 
-tf_recalc_group_pop=0%1%0
+tf_recalc_group_pop=1%0%1%0
 filename_group_cell_ua=strcat('cell_urbanarea_census_data_2020_2023.mat')%%%%%%%%Using the 2023 Census Tracts/PEA equivalent
 var_exist_group_cell=exist(filename_group_cell_ua,'file');
 if tf_recalc_group_pop==1
@@ -594,6 +594,28 @@ else
     while(retry_save==1)
         try
             tic;
+            save('cell_urbanarea_census_data_2020_2023_contours.mat','cell_ua_census_data_2020') %%%%%%For plotting purposes
+            toc; %%%%%%%0.08 seconds for 5MB
+            pause(0.1);
+            retry_save=0;
+        catch
+            retry_save=1
+            pause(0.1)
+        end
+    end
+
+
+    %%%%%%%'Remove the contours'
+    empty_cell=cell(1,1);
+    cell_ua_census_data_2020(:,3)=empty_cell;
+
+
+    %%%%%%%%%%%%This is the slim version (No contours)
+
+    retry_save=1;
+    while(retry_save==1)
+        try
+            tic;
             save(filename_group_cell_ua,'cell_ua_census_data_2020')
             toc; %%%%%%%0.08 seconds for 5MB
             pause(0.1);
@@ -605,7 +627,11 @@ else
     end
 end
 cell_ua_census_data_2020(1:10,:)
-cell_ua_census_data_2020(:,[1,4])
+%cell_ua_census_data_2020(:,[1,4])
+
+'check for no contours'
+pause;
+
 
 
 
