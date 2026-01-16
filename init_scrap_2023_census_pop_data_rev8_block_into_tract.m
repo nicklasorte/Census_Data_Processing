@@ -510,7 +510,7 @@ cell_ua_data_pop_2020([1,2],:)'
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Make the Urban Area Data [DONE]
 
-tf_recalc_group_pop=1%0%1%0
+tf_recalc_group_pop=0%1%0
 filename_group_cell_ua=strcat('cell_urbanarea_census_data_2020_2023.mat')%%%%%%%%Using the 2023 Census Tracts/PEA equivalent
 var_exist_group_cell=exist(filename_group_cell_ua,'file');
 if tf_recalc_group_pop==1
@@ -574,7 +574,7 @@ else
             cell_ua_census_data_2020{i,4}=sum(tract_pop(inside_idx));
             cell_ua_census_data_2020{i,6}=array_geo_idx(inside_idx);
             cell_ua_census_data_2020{i,7}=tract_pop(inside_idx);
-            cell_ua_census_data_2020{i,9}=points_latlon(inside_idx);
+            cell_ua_census_data_2020{i,9}=points_latlon(inside_idx,:);
         else
             %cell_ua_census_data_2020{i,4}=0;
             cell_ua_census_data_2020{i,6}=NaN(1,1);
@@ -629,8 +629,7 @@ end
 cell_ua_census_data_2020(1:10,:)
 %cell_ua_census_data_2020(:,[1,4])
 
-'check for no contours'
-pause;
+
 
 
 
